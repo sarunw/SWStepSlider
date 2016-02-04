@@ -1,0 +1,12 @@
+source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
+
+target 'SWStepSlider_Example', :exclusive => true do
+  pod 'SWStepSlider', :path => '../'
+end
+
+target 'SWStepSlider_Tests', :exclusive => true do
+  pod 'SWStepSlider', :path => '../'
+
+  
+end

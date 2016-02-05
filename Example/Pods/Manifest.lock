@@ -1,0 +1,14 @@
+PODS:
+  - SWStepSlider (0.1.0)
+
+DEPENDENCIES:
+  - SWStepSlider (from `../`)
+
+EXTERNAL SOURCES:
+  SWStepSlider:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  SWStepSlider: 3f8ab97c4c6f5d93469bc0ce854a8c77c5dd18a1
+
+COCOAPODS: 0.39.0

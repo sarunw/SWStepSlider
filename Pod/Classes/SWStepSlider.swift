@@ -9,18 +9,18 @@
 import UIKit
 
 @IBDesignable
-public class SWStepSlider: UIControl {
-    @IBInspectable public var minimumValue: Int = 0
-    @IBInspectable public var maximumValue: Int = 4
-    @IBInspectable public var value: Int = 2 {
+open class SWStepSlider: UIControl {
+    @IBInspectable open var minimumValue: Int = 0
+    @IBInspectable open var maximumValue: Int = 4
+    @IBInspectable open var value: Int = 2 {
         didSet {
             if self.value != oldValue && self.continuous {
-                self.sendActionsForControlEvents(.ValueChanged)
+                self.sendActions(for: .valueChanged)
             }
         }
     }
     
-    @IBInspectable public var continuous: Bool = true // if set, value change events are generated any time the value changes due to dragging. default = YES
+    @IBInspectable open var continuous: Bool = true // if set, value change events are generated any time the value changes due to dragging. default = YES
     
     let trackLayer = CALayer()
     var trackHeight: CGFloat = 1
@@ -31,7 +31,7 @@ public class SWStepSlider: UIControl {
     var tickColor = UIColor(red: 152.0/255.0, green: 152.0/255.0, blue: 152.0/255.0, alpha: 1)
     
     let thumbLayer = CAShapeLayer()
-    var thumbFillColor = UIColor.whiteColor()
+    var thumbFillColor = UIColor.white
     var thumbStrokeColor = UIColor(red: 222.0/255.0, green: 222.0/255.0, blue: 222.0/255.0, alpha: 1)
     var thumbDimension: CGFloat = 28
     
@@ -63,28 +63,35 @@ public class SWStepSlider: UIControl {
         self.commonInit()
     }
     
-    private func commonInit() {
-        self.trackLayer.backgroundColor = self.trackColor.CGColor
+    fileprivate func commonInit() {
+        self.isAccessibilityElement = true
+        self.accessibilityTraits = UIAccessibilityTraitAdjustable
+        
+        self.trackLayer.backgroundColor = self.trackColor.cgColor
         self.layer.addSublayer(trackLayer)
         
-        self.thumbLayer.backgroundColor = UIColor.clearColor().CGColor
-        self.thumbLayer.fillColor = self.thumbFillColor.CGColor
-        self.thumbLayer.strokeColor = self.thumbStrokeColor.CGColor
+        self.thumbLayer.backgroundColor = UIColor.clear.cgColor
+        self.thumbLayer.fillColor = self.thumbFillColor.cgColor
+        self.thumbLayer.strokeColor = self.thumbStrokeColor.cgColor
         self.thumbLayer.lineWidth = 0.5
         self.thumbLayer.frame = CGRect(x: 0, y: 0, width: self.thumbDimension, height: self.thumbDimension)
-        self.thumbLayer.path = UIBezierPath(ovalInRect: self.thumbLayer.bounds).CGPath
+        self.thumbLayer.path = UIBezierPath(ovalIn: self.thumbLayer.bounds).cgPath
         
         // Shadow
         self.thumbLayer.shadowOffset = CGSize(width: 0, height: 2)
-        self.thumbLayer.shadowColor = UIColor.blackColor().CGColor
+        self.thumbLayer.shadowColor = UIColor.black.cgColor
         self.thumbLayer.shadowOpacity = 0.3
         self.thumbLayer.shadowRadius = 2
-        self.thumbLayer.contentsScale = UIScreen.mainScreen().scale
+        self.thumbLayer.contentsScale = UIScreen.main.scale
+        
+        // Tap Gesture Recognizer
+        let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+        self.addGestureRecognizer(tap)
         
         self.layer.addSublayer(self.thumbLayer)
     }
     
-    public override func layoutSubviews() {
+    open override func layoutSubviews() {
         super.layoutSubviews()
         
         var rect = self.bounds
@@ -99,14 +106,16 @@ public class SWStepSlider: UIControl {
         self.thumbLayer.frame = thumbRect
     }
     
-    public override func drawRect(rect: CGRect) {
-        super.drawRect(rect)
+    open override func draw(_ rect: CGRect) {
+        super.draw(rect)
         
-        let ctx = UIGraphicsGetCurrentContext()
+        guard let ctx = UIGraphicsGetCurrentContext() else {
+            return
+        }
         
-        CGContextSaveGState(ctx)
+        ctx.saveGState()
         // Draw ticks
-        CGContextSetFillColorWithColor(ctx, self.tickColor.CGColor)
+        ctx.setFillColor(self.tickColor.cgColor)
         
         for index in 0..<self.numberOfSteps {
             let x = self.trackOffset + CGFloat(index) * self.stepWidth - 0.5 * self.tickWidth
@@ -116,13 +125,13 @@ public class SWStepSlider: UIControl {
             let tickPath = UIBezierPath(rect: CGRect(x: x , y: y, width: self.tickWidth, height: self.tickHeight))
             
             // Fill the tick
-            CGContextAddPath(ctx, tickPath.CGPath)
-            CGContextFillPath(ctx)
+            ctx.addPath(tickPath.cgPath)
+            ctx.fillPath()
         }
-        CGContextRestoreGState(ctx)
+        ctx.restoreGState()
     }
     
-    public override func intrinsicContentSize() -> CGSize {
+    open override var intrinsicContentSize : CGSize {
         return CGSize(width: self.thumbDimension * CGFloat(self.numberOfSteps), height: self.thumbDimension)
     }
     
@@ -132,11 +141,9 @@ public class SWStepSlider: UIControl {
     var dragging = false
     var originalValue: Int!
     
-    public override func beginTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
-        let location = touch.locationInView(self)
+    open override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        let location = touch.location(in: self)
         self.originalValue = self.value
-        
-        print("touch \(location)")
         
         if self.thumbLayer.frame.contains(location) {
             self.dragging = true
@@ -149,8 +156,8 @@ public class SWStepSlider: UIControl {
         return self.dragging
     }
     
-    public override func continueTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
-        let location = touch.locationInView(self)
+    open override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        let location = touch.location(in: self)
         
         let deltaLocation = location.x - self.previousLocation.x
         let deltaValue = self.deltaValue(deltaLocation)
@@ -169,26 +176,68 @@ public class SWStepSlider: UIControl {
         self.setNeedsLayout()
         CATransaction.commit()
         
-
+        
         return true
     }
     
-    public override func endTrackingWithTouch(touch: UITouch?, withEvent event: UIEvent?) {
+    open override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         self.previousLocation = nil
         self.originalValue = nil
         self.dragging = false
         
         if self.continuous == false {
-            self.sendActionsForControlEvents(.ValueChanged)
+            self.sendActions(for: .valueChanged)
         }
     }
     
     // MARK: - Helper
-    func deltaValue(deltaLocation: CGFloat) -> Int {
+    func deltaValue(_ deltaLocation: CGFloat) -> Int {
         return Int(round(fabs(deltaLocation) / self.stepWidth))
     }
     
-    func clipValue(value: Int) -> Int {
+    func clipValue(_ value: Int) -> Int {
         return min(max(value, self.minimumValue), self.maximumValue)
+    }
+    
+    // MARK: - Tap Gesture Recognizer
+    
+    @objc func handleTap(_ sender: UIGestureRecognizer) {
+        if !self.dragging {
+            let pointTapped: CGPoint = sender.location(in: self)
+            
+            let widthOfSlider: CGFloat = self.bounds.size.width
+            let newValue = pointTapped.x * (CGFloat(self.numberOfSteps) / widthOfSlider)
+            
+            self.value = Int(newValue)
+            if self.continuous == false {
+                self.sendActions(for: .valueChanged)
+            }
+            
+            self.setNeedsLayout()
+        }
+    }
+    
+	// MARK: - Accessibility
+	
+    open override func accessibilityIncrement() {
+        guard self.value < self.maximumValue else {
+            return
+        }
+        self.value = self.value + 1
+        if self.continuous == false {
+            self.sendActions(for: .valueChanged)
+        }
+        self.setNeedsLayout()
+    }
+    
+    open override func accessibilityDecrement() {
+        guard self.value > self.minimumValue else {
+            return
+        }
+        self.value = self.value - 1
+        if self.continuous == false {
+            self.sendActions(for: .valueChanged)
+        }
+        self.setNeedsLayout()
     }
 }

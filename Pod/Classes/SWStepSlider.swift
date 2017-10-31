@@ -198,6 +198,25 @@ open class SWStepSlider: UIControl {
     func clipValue(_ value: Int) -> Int {
         return min(max(value, self.minimumValue), self.maximumValue)
     }
+    
+    // MARK: - Tap Gesture Recognizer
+    
+    @objc func handleTap(_ sender: UIGestureRecognizer) {
+        if !self.dragging {
+            let pointTapped: CGPoint = sender.location(in: self)
+            
+            let widthOfSlider: CGFloat = self.bounds.size.width
+            let newValue = pointTapped.x * (CGFloat(self.numberOfSteps) / widthOfSlider)
+            
+            self.value = Int(newValue)
+            if self.continuous == false {
+                self.sendActions(for: .valueChanged)
+            }
+            
+            self.setNeedsLayout()
+        }
+    }
+    
 	// MARK: - Accessibility
 	
     open override func accessibilityIncrement() {

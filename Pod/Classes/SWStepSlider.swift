@@ -64,6 +64,8 @@ open class SWStepSlider: UIControl {
     }
     
     fileprivate func commonInit() {
+        self.isAccessibilityElement = true
+        self.accessibilityTraits = UIAccessibilityTraitAdjustable
         
         self.trackLayer.backgroundColor = self.trackColor.cgColor
         self.layer.addSublayer(trackLayer)
@@ -195,5 +197,28 @@ open class SWStepSlider: UIControl {
     
     func clipValue(_ value: Int) -> Int {
         return min(max(value, self.minimumValue), self.maximumValue)
+    }
+	// MARK: - Accessibility
+	
+    open override func accessibilityIncrement() {
+        guard self.value < self.maximumValue else {
+            return
+        }
+        self.value = self.value + 1
+        if self.continuous == false {
+            self.sendActions(for: .valueChanged)
+        }
+        self.setNeedsLayout()
+    }
+    
+    open override func accessibilityDecrement() {
+        guard self.value > self.minimumValue else {
+            return
+        }
+        self.value = self.value - 1
+        if self.continuous == false {
+            self.sendActions(for: .valueChanged)
+        }
+        self.setNeedsLayout()
     }
 }
